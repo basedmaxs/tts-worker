@@ -1,0 +1,4 @@
+name = "tts-worker"
+main = "index.js"
+compatibility_date = "2025-05-08"
+workers_dev = true
