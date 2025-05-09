@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TTS Web App</title>
+  <style>
+    :root {
+      --bg-color: #f5f5f5;
+      --text-color: #333;
+      --input-bg: #fff;
+      --input-border: #ddd;
+      --button-bg: #6200ea;
+      --button-hover: #3700b3;
+      --reset-bg: #757575;
+      --reset-hover: #616161;
+      --error-bg: #ffebee;
+      --error-text: #d32f2f;
+      --slider-track: #ddd;
+      --slider-thumb: #6200ea;
+    }
+    [data-theme="dark"] {
+      --bg-color: #121212;
+      --text-color: #e0e0e0;
+      --input-bg: #1e1e1e;
+      --input-border: #444;
+      --button-bg: #bb86fc;
+      --button-hover: #985eff;
+      --reset-bg: #616161;
+      --reset-hover: #4e4e4e;
+      --error-bg: #3d1a1a;
+      --error-text: #ef5350;
+      --slider-track: #444;
+      --slider-thumb: #bb86fc;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      max-width: 500px;
+      margin: 20px auto;
+      padding: 10px;
+      background: var(--bg-color);
+      color: var(--text-color);
+      transition: background 0.3s, color 0.3s;
+    }
+    h1 {
+      font-size: 1.5rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .slider-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    textarea, input[type="text"], input[type="password"] {
+      padding: 0.5rem;
+      border: 1px solid var(--input-border);
+      border-radius: 4px;
+      background: var(--input-bg);
+      color: var(--text-color);
+      font-size: 0.9rem;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      background: var(--slider-track);
+      border-radius: 3px;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      background: var(--slider-thumb);
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      background: var(--slider-thumb);
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--text-color);
+      min-width: 30px;
+      text-align: right;
+    }
+    .api-key-container {
+      position: relative;
+    }
+    .toggle-visibility {
+      position: absolute;
+      right: 0.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--button-bg);
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    .description {
+      font-size: 0.8rem;
+      color: #666;
+    }
+    [data-theme="dark"] .description {
+      color: #aaa;
+    }
+    .button-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+    button {
+      padding: 0.75rem;
+      background: var(--button-bg);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      flex: 1;
+    }
+    button:hover {
+      background: var(--button-hover);
+    }
+    button:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+    .reset-btn {
+      background: var(--reset-bg);
+    }
+    .reset-btn:hover {
+      background: var(--reset-hover);
+    }
+    .theme-toggle {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+    .loader {
+      display: none;
+      border: 2px solid var(--button-bg);
+      border-top: 2px solid transparent;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      margin: 0.5rem auto;
+    }
+    .error {
+      display: none;
+      background: var(--error-bg);
+      color: var(--error-text);
+      padding: 0.5rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      text-align: center;
+      animation: fadeIn 0.3s;
+    }
+    audio {
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (max-width: 400px) {
+      h1 { font-size: 1.2rem; }
+      body { padding: 5px; }
+      .description { font-size: 0.7rem; }
+      .slider-value { font-size: 0.7rem; }
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+  <h1>TTS Web</h1>
+  <div class="container">
+    <div class="input-group">
+      <span class="description">Text to convert to speech</span>
+      <textarea id="text" placeholder="Enter text" required></textarea>
+    </div>
+    <div class="input-group">
+      <span class="description">Voice ID from ElevenLabs</span>
+      <input id="voice" type="text" value="21m00Tcm4TlvDq8ikWAM" placeholder="Voice ID">
+    </div>
+    <div class="input-group">
+      <span class="description">Playback speed (0.5-2.0)</span>
+      <div class="slider-group">
+        <input id="speed" type="range" step="0.05" min="0.5" max="2.0" value="1.0">
+        <span id="speed-value" class="slider-value">1.00</span>
+      </div>
+    </div>
+    <div class="input-group">
+      <span class="description">Voice similarity (0.0-1.0)</span>
+      <div class="slider-group">
+        <input id="similarity" type="range" step="0.05" min="0.0" max="1.0" value="0.75">
+        <span id="similarity-value" class="slider-value">0.75</span>
+      </div>
+    </div>
+    <div class="input-group">
+      <span class="description">Voice expression (0.0-1.0)</span>
+      <div class="slider-group">
+        <input id="style" type="range" step="0.05" min="0.0" max="1.0" value="0.0">
+        <span id="style-value" class="slider-value">0.00</span>
+      </div>
+    </div>
+    <div class="input-group">
+      <span class="description">Voice consistency (0.0-1.0)</span>
+      <div class="slider-group">
+        <input id="stability" type="range" step="0.05" min="0.0" max="1.0" value="0.15">
+        <span id="stability-value" class="slider-value">0.15</span>
+      </div>
+    </div>
+    <div class="input-group">
+      <span class="description">Your ElevenLabs API key</span>
+      <div class="api-key-container">
+        <input id="apiKey" type="password" placeholder="API Key" required>
+        <button id="toggleApiKey" class="toggle-visibility" onclick="toggleApiKeyVisibility()">Show</button>
+      </div>
+    </div>
+    <div class="button-group">
+      <button id="generateBtn" onclick="generateTTS()">Generate</button>
+      <button class="reset-btn" onclick="resetForm()">Reset</button>
+    </div>
+    <div id="loader" class="loader"></div>
+    <div id="error" class="error"></div>
+    <audio id="audio" controls></audio>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      document.body.dataset.theme = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+    }
+
+    function toggleApiKeyVisibility() {
+      const apiKeyInput = document.getElementById('apiKey');
+      const toggleButton = document.getElementById('toggleApiKey');
+      apiKeyInput.type = apiKeyInput.type === 'password' ? 'text' : 'password';
+      toggleButton.textContent = apiKeyInput.type === 'password' ? 'Show' : 'Hide';
+    }
+
+    function updateSliderValue(sliderId, valueId) {
+      const slider = document.getElementById(sliderId);
+      const value = document.getElementById(valueId);
+      value.textContent = parseFloat(slider.value).toFixed(2);
+      slider.addEventListener('input', () => {
+        value.textContent = parseFloat(slider.value).toFixed(2);
+      });
+    }
+
+    updateSliderValue('speed', 'speed-value');
+    updateSliderValue('similarity', 'similarity-value');
+    updateSliderValue('style', 'style-value');
+    updateSliderValue('stability', 'stability-value');
+
+    function resetForm() {
+      document.getElementById('text').value = '';
+      document.getElementById('voice').value = '21m00Tcm4TlvDq8ikWAM';
+      document.getElementById('speed').value = 1.0;
+      document.getElementById('speed-value').textContent = '1.00';
+      document.getElementById('similarity').value = 0.75;
+      document.getElementById('similarity-value').textContent = '0.75';
+      document.getElementById('style').value = 0.0;
+      document.getElementById('style-value').textContent = '0.00';
+      document.getElementById('stability').value = 0.15;
+      document.getElementById('stability-value').textContent = '0.15';
+      document.getElementById('apiKey').value = '';
+      document.getElementById('error').style.display = 'none';
+      document.getElementById('audio').src = '';
+    }
+
+    async function generateTTS() {
+      const text = document.getElementById('text').value;
+      const voice = document.getElementById('voice').value;
+      const speed = document.getElementById('speed').value;
+      const similarity = document.getElementById('similarity').value;
+      const style = document.getElementById('style').value;
+      const stability = document.getElementById('stability').value;
+      const apiKey = document.getElementById('apiKey').value;
+      const audio = document.getElementById('audio');
+      const error = document.getElementById('error');
+      const button = document.getElementById('generateBtn');
+      const loader = document.getElementById('loader');
+
+      error.style.display = 'none';
+      button.disabled = true;
+      loader.style.display = 'block';
+
+      try {
+        if (!text) throw new Error('Text is required');
+        if (!apiKey) throw new Error('API key is required');
+
+        const response = await fetch('https://tts-worker.your-subdomain.workers.dev', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'xi-api-key': apiKey
+          },
+          body: JSON.stringify({ text, voice, speed, similarity, style, stability })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to generate audio');
+        }
+
+        const blob = await response.blob();
+        audio.src = URL.createObjectURL(blob);
+        audio.playbackRate = parseFloat(speed);
+        audio.play();
+      } catch (err) {
+        error.textContent = err.message;
+        error.style.display = 'block';
+      } finally {
+        button.disabled = false;
+        loader.style.display = 'none';
+      }
+    }
+  </script>
+</body>
+</html>
